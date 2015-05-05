@@ -1,0 +1,6 @@
+---
+- name: restart sahara services
+  service: name={{ item }} state=restarted_if_running must_exist=false
+  when: restart|default('True')
+  with_items:
+    - sahara-all

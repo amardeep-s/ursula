@@ -1,0 +1,81 @@
+---
+- name: create sahara user
+  user: name=sahara comment=sahara shell=/bin/false system=yes home=/nonexistent
+        createhome=no
+
+- name: create sahara config directories
+  file: dest={{ item }} state=directory owner=root group=sahara mode=0750
+  with_items:
+    - /etc/sahara
+
+- name: create sahara log directory
+  file: dest=/var/log/sahara state=directory mode=0755 owner=sahara
+
+- name: create sahara temp directory
+  file: dest=/opt/stack/sahara state=directory mode=0755 owner=sahara
+
+- debug: msg="path of sahara virtual env {{ sahara.virtualenv }}"
+
+- name: create virtualenv for sahara
+  command: "virtualenv {{ sahara.virtualenv }}"
+
+- name: fetch sahara-juno stable tarball
+  get_url: url={{ sahara.juno_url }} dest=/opt/stack/sahara/sahara-stable-juno.tar.gz
+
+- name: install sahara-juno 
+  command: "{{ sahara.virtualenv }}/bin/pip install /opt/stack/sahara/sahara-stable-juno.tar.gz"
+
+- name: install sahara-juno mysql module 
+  command: "{{ sahara.virtualenv }}/bin/pip install mysql-python"
+
+- name: copy sahara config files
+  template: src=etc/sahara/sahara.conf dest=/etc/sahara/sahara.conf mode=0644
+
+- name: sahara update-alternatives
+  shell: update-alternatives --install /usr/local/bin/{{ item }} {{ item }} {{ sahara.virtualenv }}/bin/{{ item }} 10 --force
+  with_items:
+    - sahara-all
+    - sahara-api
+    - sahara-engine
+    - sahara-db-manage
+
+- name: sync sahara database
+  command: "sahara-db-manage --config-file /etc/sahara/sahara.conf upgrade head"
+  run_once: true
+
+- name: fetch sahara-juno dashboard stable tarball
+  get_url: url={{ sahara.dashboard_url }} dest=/opt/stack/sahara/sahara-dashboard-master.tar.gz
+
+- name: install sahara dashboard
+  command: "/opt/openstack/current/horizon/bin/pip install /opt/stack/sahara/sahara-dashboard-master.tar.gz"
+
+- name: modify horizon dashboard configuration 
+  lineinfile: dest=/opt/openstack/current/horizon/lib/python2.7/site-packages/openstack_dashboard/settings.py
+     regexp="('dashboards':\s\('project',\s'admin',\s'router',\))"
+     insertafter="('dashboards':\s\('project',\s'admin',\s'router',\))"
+     line="    'dashboards'":" ('project', 'admin', 'router', 'sahara',),"
+     backrefs=yes
+     state=present
+
+- name: modify horizon dashboard config to add module saharadashboard
+  lineinfile: dest=/opt/openstack/current/horizon/lib/python2.7/site-packages/openstack_dashboard/settings.py
+     regexp="('openstack_auth',)"
+     insertafter="('openstack_auth',)"
+     line="    'openstack_auth','saharadashboard',"
+     state=present
+
+- name: install sahara services
+  upstart_service: name={{ item }}
+                   user=sahara
+                   cmd=/usr/local/bin/{{ item }}
+                   config_files=/etc/sahara/sahara.conf
+  with_items:
+    - sahara-all
+
+- name: start sahara service
+  service: name=sahara-all state=started
+
+- include: logging.yml
+  tags:
+    - logrotate
+    - logging

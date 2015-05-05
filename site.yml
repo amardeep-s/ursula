@@ -266,6 +266,19 @@
       service: name=neutron-openvswitch-agent state=restarted
       when: neutron.plugin == 'ovs'
 
+- name: sahara setup
+  gather_facts: force
+  hosts: controller
+  roles:
+    - role: openstack-database
+      database_name: sahara
+      tags: ['openstack', 'sahara', 'control']
+      when: sahara.enabled|bool
+
+    - role: sahara
+      tags: ['openstack', 'sahara', 'control']
+      when: sahara.enabled|bool
+
 - name: cleanup ansible proxy
   hosts: all
   tasks:

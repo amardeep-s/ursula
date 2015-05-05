@@ -3,3 +3,5 @@
 max_connections = 512
 innodb_log_file_size=50331648
 lock_wait_timeout = 1800
+#Mandatory for Sahara Intergation
+max_allowed_packet = 256M
