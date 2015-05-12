@@ -1,10 +1,14 @@
 ---
 sahara:
-  enabled: True
-  juno_url: http://tarballs.openstack.org/sahara/sahara-stable-juno.tar.gz
+  enabled: False
+  sahara_url: http://tarballs.openstack.org/sahara/sahara-stable-kilo.tar.gz
   dashboard_url: http://tarballs.openstack.org/sahara-dashboard/sahara-dashboard-master.tar.gz
   cafile: "{{ ssl.cafile|default('/etc/ssl/certs/ca-certificates.crt') }}"
-logs:
-    logging:
-    debug: True
-    verbose: True
+
+  logs:
+    - paths:
+        - /var/log/sahara/sahara-all.log
+
+  logging:
+    debug: False
+    verbose: False
