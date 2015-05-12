@@ -2,4 +2,3 @@
 dependencies:
   - role: openstack-database
     database_name: sahara
-    package_alternatives: "{{ sahara.package.console_scripts }}"
