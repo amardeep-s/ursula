@@ -8,7 +8,7 @@ country_code: US
 
 #openstack_install_method: 'source'
 openstack_install_method: 'package'
-openstack_package_version: '10.0-bbc60'
+openstack_package_version: '10.0-bbc64'
 
 fqdn: openstack.example.org
 undercloud_floating_ip: "{{ hostvars[groups['controller'][0]][primary_interface]['ipv4']['address'] }}"
@@ -33,6 +33,7 @@ endpoints:
   neutron:  "{{ fqdn }}"
   vnc:      "{{ fqdn }}"
   cinder:   "{{ fqdn }}"
+  cinderv2: "{{ fqdn }}"
   heat:     "{{ fqdn }}"
   heat-cfn: "{{ fqdn }}"
   ironic: "{{ fqdn }}"
@@ -309,6 +310,12 @@ keystone:
       public_url: https://{{ endpoints.main }}:8778/v1/%(tenant_id)s
       internal_url: https://{{ endpoints.main }}:8778/v1/%(tenant_id)s
       admin_url: https://{{ endpoints.main }}:8778/v1/%(tenant_id)s
+    - name: cinderv2
+      type: volumev2
+      description: 'Volume Service v2'
+      public_url: https://{{ endpoints.main }}:8778/v2/%(tenant_id)s
+      internal_url: https://{{ endpoints.main }}:8778/v2/%(tenant_id)s
+      admin_url: https://{{ endpoints.main }}:8778/v2/%(tenant_id)s
     - name: swift
       type: object-store
       description: 'Object Storage Service'

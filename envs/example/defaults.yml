@@ -5,7 +5,7 @@ country_code: US
 
 #openstack_install_method: 'source'
 openstack_install_method: 'package'
-openstack_package_version: '10.0-bbc60'
+openstack_package_version: '10.0-bbc62'
 
 primary_interface: 'ansible_eth0'
 primary_ip: "{{ hostvars[inventory_hostname][primary_interface]['ipv4']['address'] }}"
@@ -101,11 +101,13 @@ nova:
   conductor_workers: 1
   metadata_api_workers: 1
   reserved_host_disk_mb: 50
+  enable_ssh: true
   logging:
     debug: True
     verbose: True
 
 cinder:
+  volume_type: file
   volume_file: /opt/stack/cinder-volumes
   volume_file_size: 5G
   #fixed_key: 6a5c55db5e250f234b6af7807dafda77433dddcf372b6d04801a45f578a35aa7
