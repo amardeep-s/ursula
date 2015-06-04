@@ -14,8 +14,15 @@
 - name: create sahara temp directory
   file: dest=/opt/stack/sahara state=directory mode=0755 owner=sahara
 
+# Check if virtual env exists
+- name: checking of virtual env for sahara exists
+  stat: path={{ sahara.virtualenv }}
+  register: check_path
+
+# Create virtual env 
 - name: create virtualenv for sahara
   command: "virtualenv {{ sahara.virtualenv }}"
+  when: check_path.stat.exists == false
 
 - name: fetch sahara stable tarball
   get_url: url={{ sahara.sahara_url }} dest=/opt/stack/sahara/sahara-stable-kilo.tar.gz
@@ -39,10 +46,17 @@
     - sahara-api
     - sahara-engine
     - sahara-db-manage
+    - _sahara-subprocess
+
+- name: stop sahara services before db sync
+  service: name=sahara-all state=stopped
+  when: database_create.changed or force_sync|default('false')|bool
 
 - name: sync sahara database
-  command: "sahara-db-manage --config-file /etc/sahara/sahara.conf upgrade head"
+  command: sahara-db-manage --config-file /etc/sahara/sahara.conf upgrade head
+  when: database_create.changed or force_sync|default('false')|bool
   run_once: true
+  changed_when: true
 
 - name: fetch sahara dashboard stable tarball
   get_url: url={{ sahara.dashboard_url }} dest=/opt/stack/sahara/sahara-dashboard-master.tar.gz
