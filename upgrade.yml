@@ -372,4 +372,18 @@
   roles:
     - role: horizon
 
+#Sahara Block
+- name: upgrade sahara
+  hosts: controller
+  max_fail_percentage: 1
+  tags: sahara
+
+  roles:
+    - role: sahara
+      force_sync: true
+      restart: False
+      database_create:
+        changed: False
+      when: sahara.enabled == True
+
 - include: site.yml
