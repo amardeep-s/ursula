@@ -1,4 +1,0 @@
----
-dependencies:
-  - role: openstack-database
-    database_name: sahara
