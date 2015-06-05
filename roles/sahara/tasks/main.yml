@@ -48,6 +48,14 @@
     - sahara-db-manage
     - _sahara-subprocess
 
+- name: install sahara services
+  upstart_service: name={{ item }}
+                   user=sahara
+                   cmd=/usr/local/bin/{{ item }}
+                   config_files=/etc/sahara/sahara.conf
+  with_items:
+    - sahara-all
+
 - name: stop sahara services before db sync
   service: name=sahara-all state=stopped
   when: database_create.changed or force_sync|default('false')|bool
@@ -78,14 +86,6 @@
      insertafter="('openstack_auth',)"
      line="    'openstack_auth','saharadashboard',"
      state=present
-
-- name: install sahara services
-  upstart_service: name={{ item }}
-                   user=sahara
-                   cmd=/usr/local/bin/{{ item }}
-                   config_files=/etc/sahara/sahara.conf
-  with_items:
-    - sahara-all
 
 - name: start sahara service
   service: name=sahara-all state=started
